@@ -30,6 +30,7 @@ export default function UploadSection({ onExcelHeaders }: UploadSectionProps) {
   const [rawPreview, setRawPreview] = useState<any[][] | null>(null);
   const [parseNote, setParseNote] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [csvData, setCsvData] = useState<string | null>(null);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -158,6 +159,15 @@ export default function UploadSection({ onExcelHeaders }: UploadSectionProps) {
         }
 
         setExcelData({ headers, rows: dataRows });
+        // Generar CSV en memoria inmediatamente
+        try {
+          const aoa = [headers, ...dataRows];
+          const ws = XLSX.utils.aoa_to_sheet(aoa);
+          const csv = XLSX.utils.sheet_to_csv(ws);
+          setCsvData(csv);
+        } catch {
+          setCsvData(null);
+        }
         if (onExcelHeaders) onExcelHeaders(headers);
 
         // Calcular resumen por fechas usando la columna de vencimiento
@@ -235,6 +245,7 @@ export default function UploadSection({ onExcelHeaders }: UploadSectionProps) {
     setExtraFiles([]);
     setUploadStatus('idle');
     setExcelData(null);
+    setCsvData(null);
     if (onExcelHeaders) onExcelHeaders([]);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -445,9 +456,16 @@ export default function UploadSection({ onExcelHeaders }: UploadSectionProps) {
       )}
 
       {file && excelData && (
-        <button className="w-full py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-semibold text-lg shadow-lg shadow-green-600/20">
-          Continuar con {excelData.rows.length} Contactos
-        </button>
+        <div className="space-y-2">
+          <button className="w-full py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-semibold text-lg shadow-lg shadow-green-600/20">
+            Continuar con {excelData.rows.length} Contactos
+          </button>
+          {csvData && (
+            <div className="text-xs text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+              CSV generado en memoria y listo para procesar.
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
