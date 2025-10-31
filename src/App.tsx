@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { UploadDataProvider } from './context/UploadDataContext';
 import Sidebar from './components/Sidebar';
 import UploadSection from './components/UploadSection';
 import MessageSection from './components/MessageSection';
@@ -10,9 +11,10 @@ function App() {
   const [activeSection, setActiveSection] = useState('upload');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [excelHeaders, setExcelHeaders] = useState<string[]>([]);
+  // Headers are provided via UploadDataProvider context now
 
   return (
+    <UploadDataProvider>
     <div className="min-h-screen bg-gray-50 flex">
       {/* Mobile top bar */}
       <div className="fixed inset-x-0 top-0 z-30 flex items-center justify-between bg-white border-b border-gray-200 px-4 py-3 md:hidden">
@@ -49,13 +51,13 @@ function App() {
       )}
 
       <main className="flex-1 overflow-auto w-full">
-        <div className="max-w-5xl mx-auto p-4 md:p-8 pt-20 md:pt-8">
+        <div className="max-w-none w-full p-4 md:p-8 pt-20 md:pt-8">
           {(() => {
             switch (activeSection) {
               case 'upload':
-                return <UploadSection onExcelHeaders={setExcelHeaders} />;
+                return <UploadSection />;
               case 'message':
-                return <MessageSection headers={excelHeaders} />;
+                return <MessageSection />;
               case 'schedule':
                 return <ScheduleSection />;
               case 'api':
@@ -63,12 +65,13 @@ function App() {
               case 'settings':
                 return <SettingsSection />;
               default:
-                return <UploadSection onExcelHeaders={setExcelHeaders} />;
+                return <UploadSection />;
             }
           })()}
         </div>
       </main>
     </div>
+    </UploadDataProvider>
   );
 }
 
