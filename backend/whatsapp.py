@@ -34,12 +34,16 @@ class WhatsAppAutomation:
         self._lock = asyncio.Lock()
 
     async def start(self):
-        if self._browser:
+        if self._context:
             return
         self._playwright = await async_playwright().start()
-        self._browser = await self._playwright.chromium.launch(headless=False)
-        self._context = await self._browser.new_context(storage_state=None, user_agent=None, viewport={"width": 1366, "height": 900},
-                                                        user_data_dir=USER_DATA_DIR)
+        headless_env = os.getenv("WA_HEADLESS", "1").lower()
+        headless = headless_env in ("1", "true", "yes", "on")
+        self._context = await self._playwright.chromium.launch_persistent_context(
+            USER_DATA_DIR,
+            headless=headless,
+            viewport={"width": 1366, "height": 900}
+        )
         self._page = await self._context.new_page()
         await self._page.goto(START_URL)
 
@@ -90,7 +94,7 @@ class WhatsAppAutomation:
                 return None
 
     async def _ensure_ready(self):
-        if not self._browser:
+        if not self._context:
             await self.start()
 
     async def _open_chat_and_send_text(self, to: str, text: str):
